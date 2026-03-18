@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tienda — Productos disponibles</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#f7f5f0;--surface:#fff;--border:#e8e4dc;--accent:#1a1a1a;--accent2:#4a7c59;--text:#1a1a1a;--muted:#999;--red:#c0392b;--card-radius:16px;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    /* ── REGISTRO ── */
+    #registerScreen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px}
+    .reg-box{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:36px 28px;width:100%;max-width:360px;text-align:center;animation:slideUp .3s ease}
+    .reg-logo{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;margin-bottom:4px;color:var(--accent)}
+    .reg-logo span{color:var(--accent2)}
+    .reg-sub{color:var(--muted);font-size:.85rem;margin-bottom:24px}
+    .reg-field{text-align:left;margin-bottom:14px}
+    .reg-field label{display:block;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .reg-field input{width:100%;background:#f7f5f0;border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s}
+    .reg-field input:focus{border-color:var(--accent)}
+    .reg-error{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);color:var(--red);border-radius:10px;padding:10px 14px;font-size:.82rem;margin-top:10px;display:none}
+    .reg-btn{width:100%;margin-top:12px;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .2s}
+    .reg-btn:active{opacity:.85}
+    /* ── STORE ── */
+    #storeScreen{display:none}
+    .store-header{background:var(--accent);color:#fff;padding:28px 20px 20px;text-align:center}
+    .store-header h1{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,5vw,2.2rem);font-weight:800;letter-spacing:-.5px}
+    .store-header p{font-size:.85rem;opacity:.6;margin-top:4px}
+    .store-header .badge{display:inline-block;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 14px;font-size:.75rem;margin-top:10px}
+    .refresh-bar{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);display:inline-block;margin-right:6px;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .refresh-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:.78rem;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .15s}
+    .refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
+    /* Welcome banner */
+    .welcome-banner{background:#fff;border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .wb-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;color:var(--text)}
+    .wb-sub{font-size:.75rem;color:var(--muted);margin-top:1px}
+    .wb-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:.75rem;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+    .wb-btn:hover{border-color:var(--accent);color:var(--accent)}
+    /* Config banner */
+    .config-banner{background:#fff8e1;border-bottom:2px solid #ffe082;padding:14px 20px;font-size:.85rem;color:#7a5c00;text-align:center}
+    .config-banner strong{display:block;margin-bottom:4px;font-family:'Syne',sans-serif}
+    .config-banner input{width:100%;max-width:500px;margin:8px auto 0;display:block;background:#fff;border:1px solid #ffe082;border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;color:#333}
+    .config-btns{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+    .config-banner button{background:#7a5c00;color:#fff;border:none;border-radius:8px;padding:8px 20px;font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer}
+    .config-banner button.sec{background:#aaa}
+    .config-error{color:var(--red);font-size:.78rem;margin-top:6px;display:none}
+    /* Products */
+    .products-section{padding:20px 16px;max-width:700px;margin:0 auto}
+    .section-title{font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px}
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .p-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-radius);padding:16px;transition:transform .15s,box-shadow .15s}
+    .p-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.07)}
+    .p-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;line-height:1.2;margin-bottom:12px}
+    .p-price{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--accent)}
+    .p-price-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+    .p-stock{display:flex;align-items:center;gap:6px;margin-top:10px}
+    .stock-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .s-ok{background:var(--accent2)} .s-low{background:#e67e22} .s-out{background:var(--red)}
+    .stock-text{font-size:.78rem;color:var(--muted)}
+    /* States */
+    .loading{text-align:center;padding:60px 20px;color:var(--muted)}
+    .loading .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+    .empty-state .icon{font-size:3rem;margin-bottom:10px}
+    .error-state{text-align:center;padding:40px 20px;color:var(--red);font-size:.9rem}
+    .store-footer{text-align:center;padding:20px;font-size:.75rem;color:var(--muted);border-top:1px solid var(--border);margin-top:20px}
+    /* Modal cambio de nombre */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+    .modal-overlay.open{display:flex}
+    .modal{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:380px;animation:slideUp .2s ease}
+    .modal h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;margin-bottom:16px;color:var(--accent)}
+    .modal-field{margin-bottom:12px}
+    .modal-field label{display:block;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .modal-field input{width:100%;background:#f7f5f0;border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;color:var(--text);transition:border-color .2s}
+    .modal-field input:focus{border-color:var(--accent)}
+    .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    .modal-btns .btn-save{padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer}
+    .modal-btns .btn-cancel{padding:12px;background:#f7f5f0;color:var(--muted);border:1px solid var(--border);border-radius:10px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer}
+    .modal-error{color:var(--red);font-size:.8rem;margin-top:8px;display:none}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  </style>
+</head>
+<body>
+
+<!-- ════ REGISTRO (primera vez) ════ -->
+<div id="registerScreen">
+  <div class="reg-box">
+    <div class="reg-logo">🛍️ <span>Tienda</span></div>
+    <div class="reg-sub">Primera vez acá. Ingresá tu nombre para continuar — solo se pide una vez.</div>
+    <div class="reg-field"><label>Primer nombre</label><input type="text" id="rNombre" placeholder="Ej: Juan" autocomplete="given-name"/></div>
+    <div class="reg-field"><label>Primer apellido</label><input type="text" id="rApellido" placeholder="Ej: Pérez" autocomplete="family-name"/></div>
+    <div class="reg-error" id="regError">⚠️ Ingresá nombre y apellido.</div>
+    <button class="reg-btn" onclick="registrar()">Entrar a la tienda →</button>
+  </div>
+</div>
+
+<!-- ════ TIENDA ════ -->
+<div id="storeScreen">
+  <div class="store-header">
+    <h1>🛍️ Tienda</h1>
+    <p>Productos disponibles</p>
+    <div class="badge" id="countBadge">Cargando...</div>
+  </div>
+
+  <div class="refresh-bar">
+    <span><span class="dot"></span><span id="lastUpdate">Actualizando...</span></span>
+    <button class="refresh-btn" onclick="cargarProductos()">↻ Actualizar</button>
+  </div>
+
+  <div class="welcome-banner">
+    <div>
+      <div class="wb-name" id="wbName">—</div>
+      <div class="wb-sub">Bienvenido/a 👋</div>
+    </div>
+    <button class="wb-btn" onclick="abrirModalNombre()">✏️ Cambiar nombre</button>
+  </div>
+
+  <div class="config-banner" id="configBanner">
+    <strong>⚙️ URL del Apps Script</strong>
+    Pegá o corregí la URL:
+    <input type="text" id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec"/>
+    <div class="config-btns">
+      <button onclick="guardarUrl()">✅ Conectar</button>
+      <button class="sec" onclick="limpiarUrl()">🗑️ Limpiar</button>
+    </div>
+    <div class="config-error" id="cfgError">⚠️ No se pudo conectar. Verificá la URL.</div>
+  </div>
+
+  <div class="products-section">
+    <div class="section-title" id="sectionTitle"></div>
+    <div id="productosContainer">
+      <div class="loading"><div class="spinner"></div>Cargando productos...</div>
+    </div>
+  </div>
+
+  <div class="store-footer">Actualización automática cada 30 segundos</div>
+</div>
+
+<!-- Modal cambio de nombre -->
+<div class="modal-overlay" id="modalNombre">
+  <div class="modal">
+    <h3>✏️ Cambiar nombre</h3>
+    <div class="modal-field"><label>Primer nombre</label><input type="text" id="mNombre"/></div>
+    <div class="modal-field"><label>Primer apellido</label><input type="text" id="mApellido"/></div>
+    <div class="modal-error" id="modalNombreError">⚠️ Ingresá nombre y apellido.</div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cerrarModalNombre()">Cancelar</button>
+      <button class="btn-save" onclick="guardarNombre()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROFILE_KEY = 'tienda_client_profile';
+const SCRIPT_KEY  = 'tienda_script_url';
+let scriptUrl = localStorage.getItem(SCRIPT_KEY) || '';
+let refreshTimer = null;
+
+// URL desde parámetro ?url=
+const urlParam = new URLSearchParams(window.location.search).get('url');
+if (urlParam) { scriptUrl = urlParam; localStorage.setItem(SCRIPT_KEY, scriptUrl); }
+
+function fmt(n) {
+  return Number(n).toLocaleString('es-CL',{style:'currency',currency:'CLP',minimumFractionDigits:0,maximumFractionDigits:0});
+}
+
+// ── INIT ─────────────────────────────────────────────────
+(function init() {
+  const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+  if (!profile) {
+    document.getElementById('registerScreen').style.display = 'flex';
+  } else {
+    mostrarTienda(profile);
+  }
+})();
+
+function registrar() {
+  const n = document.getElementById('rNombre').value.trim();
+  const a = document.getElementById('rApellido').value.trim();
+  if (!n || !a) { document.getElementById('regError').style.display = 'block'; return; }
+  const profile = {nombre: n, apellido: a};
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  document.getElementById('registerScreen').style.display = 'none';
+  mostrarTienda(profile);
+}
+
+function mostrarTienda(profile) {
+  document.getElementById('storeScreen').style.display = 'block';
+  document.getElementById('wbName').textContent = profile.nombre + ' ' + profile.apellido;
+  if (scriptUrl) document.getElementById('cfgUrl').value = scriptUrl;
+  cargarProductos();
+  startAutoRefresh();
+}
+
+// ── CONFIG URL ────────────────────────────────────────────
+function guardarUrl() {
+  const v = document.getElementById('cfgUrl').value.trim(); if (!v) return;
+  scriptUrl = v; localStorage.setItem(SCRIPT_KEY, scriptUrl);
+  document.getElementById('cfgError').style.display = 'none';
+  cargarProductos();
+}
+
+function limpiarUrl() {
+  scriptUrl = ''; localStorage.removeItem(SCRIPT_KEY);
+  document.getElementById('cfgUrl').value = '';
+  document.getElementById('cfgError').style.display = 'none';
+  document.getElementById('productosContainer').innerHTML = `<div class="empty-state"><div class="icon">⚙️</div><div>Pegá la URL arriba para empezar.</div></div>`;
+  document.getElementById('countBadge').textContent = 'Sin configurar';
+  document.getElementById('lastUpdate').textContent = 'Sin conexión';
+}
+
+// ── CARGAR PRODUCTOS ──────────────────────────────────────
+async function cargarProductos() {
+  if (!scriptUrl) {
+    document.getElementById('productosContainer').innerHTML = `<div class="empty-state"><div class="icon">⚙️</div><div>Pegá la URL del script arriba.</div></div>`;
+    document.getElementById('countBadge').textContent = 'Sin configurar';
+    document.getElementById('lastUpdate').textContent = 'Sin conexión';
+    return;
+  }
+  try {
+    const res  = await fetch(`${scriptUrl}?action=read`, {redirect:'follow'});
+    const json = await res.json();
+    if (!json.ok) throw new Error('Error del servidor');
+    const disponibles = (json.productos||[]).filter(p => (p.stock - p.vendidos) > 0);
+    renderProductos(disponibles);
+    const now = new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('lastUpdate').textContent = `Última actualización: ${now}`;
+    document.getElementById('countBadge').textContent = `${disponibles.length} producto${disponibles.length!==1?'s':''} disponible${disponibles.length!==1?'s':''}`;
+    document.getElementById('sectionTitle').textContent = disponibles.length > 0 ? 'Productos en stock' : '';
+    document.getElementById('cfgError').style.display = 'none';
+  } catch (err) {
+    document.getElementById('productosContainer').innerHTML = `<div class="error-state">❌ No se pudo cargar. Corregí la URL arriba.<br/><small style="opacity:.6">${err.message}</small></div>`;
+    document.getElementById('lastUpdate').textContent = 'Error al actualizar';
+    document.getElementById('cfgError').style.display = 'block';
+  }
+}
+
+function renderProductos(productos) {
+  const c = document.getElementById('productosContainer');
+  if (!productos.length) {
+    c.innerHTML = `<div class="empty-state"><div class="icon">😔</div><div>No hay productos disponibles ahora.<br/>¡Volvé pronto!</div></div>`;
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'product-grid';
+  productos.forEach(p => {
+    const disp = p.stock - p.vendidos;
+    const sc   = disp >= 10 ? 's-ok' : disp >= 3 ? 's-low' : 's-out';
+    const st   = disp >= 10 ? `${disp} disponibles` : disp >= 3 ? `¡Solo ${disp} quedan!` : `¡Último${disp>1?'s '+disp:''}!`;
+    const card = document.createElement('div');
+    card.className = 'p-card';
+    card.innerHTML = `<div class="p-name">${p.nombre}</div><div class="p-price-lbl">Precio</div><div class="p-price">${fmt(p.venta)}</div><div class="p-stock"><span class="stock-dot ${sc}"></span><span class="stock-text">${st}</span></div>`;
+    grid.appendChild(card);
+  });
+  c.innerHTML = '';
+  c.appendChild(grid);
+}
+
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(cargarProductos, 30000);
+}
+
+// ── MODAL NOMBRE ──────────────────────────────────────────
+function abrirModalNombre() {
+  const profile = JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');
+  if (profile) { document.getElementById('mNombre').value=profile.nombre; document.getElementById('mApellido').value=profile.apellido; }
+  document.getElementById('modalNombreError').style.display = 'none';
+  document.getElementById('modalNombre').classList.add('open');
+}
+
+function cerrarModalNombre() { document.getElementById('modalNombre').classList.remove('open'); }
+
+function guardarNombre() {
+  const n = document.getElementById('mNombre').value.trim();
+  const a = document.getElementById('mApellido').value.trim();
+  if (!n || !a) { document.getElementById('modalNombreError').style.display='block'; return; }
+  const profile = {nombre:n, apellido:a};
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  document.getElementById('wbName').textContent = n + ' ' + a;
+  cerrarModalNombre();
+}
+
+document.getElementById('modalNombre').addEventListener('click', function(e) { if(e.target===this) cerrarModalNombre(); });
+document.addEventListener('keydown', e => { if(e.key==='Enter') { if(document.getElementById('registerScreen').style.display!=='none') registrar(); } });
+</script>
+</body>
+</html>
